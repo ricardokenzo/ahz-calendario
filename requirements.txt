@@ -1,0 +1,5 @@
+Flask==1.0.3
+Werkzeug==0.15.4
+urllib3==1.24.3
+firebase-admin==2.17.0
+uuid==1.30
