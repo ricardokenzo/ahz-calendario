@@ -73,8 +73,6 @@ def upload_file():
 			        col+=1
 			flash('File successfully uploaded')
 			return redirect('/')
-			#print('done')
-
 		else:
 			flash('Allowed file type is csv ')
 			return redirect(request.url)

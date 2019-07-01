@@ -1,6 +1,6 @@
 from flask import Flask
 
-UPLOAD_FOLDER = 'C:/Users/ricar/Desktop/calendario automatizacao/run'
+UPLOAD_FOLDER = ''
 
 app = Flask(__name__)
 app.secret_key = "secret key"
