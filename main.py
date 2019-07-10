@@ -71,6 +71,7 @@ def upload_file():
 			        i=3
 			        col+=1
 			flash('File successfully uploaded')
+			os.remove(filename)
 			return redirect('/')
 		else:
 			flash('Allowed file type is csv ')
