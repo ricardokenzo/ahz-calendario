@@ -32,44 +32,47 @@ def upload_file():
 			return redirect(request.url)
 
 		if file and allowed_file(file.filename):
-			filename = secure_filename(file.filename)
-			file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+			# filename = secure_filename(file.filename)
+			# file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
 			if (not len(firebase_admin._apps)):
 				cred = credentials.Certificate('./ServiceAccountKey.json')
 				default_app = firebase_admin.initialize_app(cred)
+
 			db = firestore.client()
 
-			with open(filename, encoding='UTF-8') as excel:
-			    reader = list(csv.reader(excel))
-			    row_count = sum(1 for row in reader)
-			    s = 3
-			    d = 0
-			    i = 3
-			    row = 2
-			    col = 1
-			    while (col < 8):
-			        while (s<row_count):
-			            time = reader[1][col]
-			            segmento = reader[s][0]
-			            nome = reader[2][col]
-			            post_id=reader[i][col]
-			            date = datetime.datetime.strptime(reader[0][col], "%d/%m/%Y")
-			            modified_date = date + timedelta(days=1)
-			            s+=1
-			            i+=1
-			            if post_id=='':
-			                continue
-			            else:
-			                doc_ref = db.collection('calendar_update').document(segmento).collection('list').document(str(uuid.uuid4()))
-			                doc_ref.set({ #set is to create, update is to update, use set and merge=true to merge
-			                    "date":modified_date,
-			                    "id_posts":[post_id],
-			                    "times_to_post":int(time),
-			                    "title":str(nome)
-			            }, merge=True)
-			        s=3
-			        i=3
-			        col+=1
+			csv_lines = file.stream.read().decode('UTF-8').split('\n')
+			reader = map(csv_lines, lambda line : line.split('\n') )
+			
+			row_count = sum(1 for row in reader)
+			s = 3
+			d = 0
+			i = 3
+			row = 2
+			col = 1
+			while (col < 8):
+					while (s<row_count):
+							time = reader[1][col]
+							segmento = reader[s][0]
+							nome = reader[2][col]
+							post_id=reader[i][col]
+							date = datetime.datetime.strptime(reader[0][col], "%d/%m/%Y")
+							modified_date = date + timedelta(days=1)
+							s+=1
+							i+=1
+							if post_id=='':
+									continue
+							else:
+									doc_ref = db.collection('calendar_update').document(segmento).collection('list').document(str(uuid.uuid4()))
+									doc_ref.set({ #set is to create, update is to update, use set and merge=true to merge
+											"date":modified_date,
+											"id_posts":[post_id],
+											"times_to_post":int(time),
+											"title":str(nome)
+							}, merge=True)
+					s=3
+					i=3
+					col+=1
 			flash('File successfully uploaded')
 			os.remove(filename)
 			return redirect('/')
