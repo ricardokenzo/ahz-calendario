@@ -32,26 +32,27 @@ def upload_file():
 			return redirect(request.url)
 
 		if file and allowed_file(file.filename):
-			# filename = secure_filename(file.filename)
-			# file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
 			if (not len(firebase_admin._apps)):
 				cred = credentials.Certificate('./ServiceAccountKey.json')
 				default_app = firebase_admin.initialize_app(cred)
 
 			db = firestore.client()
 
-			csv_lines = file.stream.read().decode('UTF-8').split('\n')
-			reader = map(csv_lines, lambda line : line.split('\n') )
-			
+			csv_string = file.stream.read().decode('UTF-8')
+			csv_lines = list(map(split_line, csv_string.split('\n\r')))
+			reader = list(map(split_row, csv_lines[0]))
 			row_count = sum(1 for row in reader)
+
 			s = 3
 			d = 0
 			i = 3
 			row = 2
 			col = 1
-			while (col < 8):
+			while (col < 9):
 					while (s<row_count):
+							print(s)
+							print(col)
+							print(reader[s])
 							time = reader[1][col]
 							segmento = reader[s][0]
 							nome = reader[2][col]
@@ -63,23 +64,35 @@ def upload_file():
 							if post_id=='':
 									continue
 							else:
+									print(
+										{
+											"date": reader[0][col],
+											"id_posts":[post_id],
+											"times_to_post":int(time),
+											"title":str(nome),
+										}
+									)
+
 									doc_ref = db.collection('calendar_update').document(segmento).collection('list').document(str(uuid.uuid4()))
 									doc_ref.set({ #set is to create, update is to update, use set and merge=true to merge
 											"date":modified_date,
 											"id_posts":[post_id],
 											"times_to_post":int(time),
 											"title":str(nome)
-							}, merge=True)
+									}, merge=True)
 					s=3
 					i=3
 					col+=1
 			flash('File successfully uploaded')
-			os.remove(filename)
 			return redirect('/')
 		else:
 			flash('Allowed file type is csv ')
 			return redirect(request.url)
 
+def split_line(line): 
+		return line.split('\r\n')
 
+def split_row(line):
+		return line.split(",")
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8001)
+    app.run(debug = True)
